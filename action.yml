@@ -37,6 +37,9 @@ inputs:
   verbose:
     description: "Print module and source location in logs."
     required: false
+  options:
+    description: "Additional options for the CLI, passed through as-is. Examples: '--dry-run' or '-vvv'"
+    required: false
 outputs:
   # Useful for when https://github.com/release-plz/release-plz/issues/1029 is implemented.
   # For now, it just returns an array with `pr` in it.
@@ -128,6 +131,14 @@ runs:
             MANIFEST_PATH=()
         fi
 
+        if [[ -n "${{ inputs.options }}" ]]
+        then
+            echo "using options '${{ inputs.options }}'"
+            OPTIONS='${{ inputs.options }}'
+        else
+            OPTIONS=''
+        fi
+
         if [[ -z "${{ inputs.command }}" || "${{ inputs.command }}" == "release-pr" ]]
         then
             echo "-- Running release-plz release-pr --"
@@ -139,6 +150,7 @@ runs:
                 "${MANIFEST_PATH[@]}"\
                 "${FORGE[@]}"\
                 "${VERBOSE[@]}"\
+                "${OPTIONS}" \
                 -o json)
             echo "release_pr_output: $release_pr_output"
             prs=$(echo $release_pr_output | jq -c .prs)
@@ -166,6 +178,7 @@ runs:
                 "${FORGE[@]}"\
                 "${TOKEN[@]}"\
                 "${VERBOSE[@]}"\
+                "${OPTIONS}" \
                 -o json)
             echo "release_output: $release_output"
             releases=$(echo $release_output | jq -c .releases)
